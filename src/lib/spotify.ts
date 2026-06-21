@@ -200,11 +200,14 @@ export async function createPlaylist(
   };
 
   // Spotify accepts up to 100 URIs per request.
+  // Note: the playlist "add items" endpoint is `/items` (renamed from
+  // `/tracks` in Spotify's February 2026 Web API migration; the old path
+  // returns 403 for Development Mode apps).
   for (let i = 0; i < opts.uris.length; i += 100) {
     const chunk = opts.uris.slice(i, i + 100);
     const addRes = await spotifyFetch(
       userId,
-      `/playlists/${playlist.id}/tracks`,
+      `/playlists/${playlist.id}/items`,
       { method: "POST", body: JSON.stringify({ uris: chunk }) }
     );
     if (!addRes.ok) {
