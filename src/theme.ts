@@ -36,11 +36,11 @@ export const theme = createTheme({
   white: "#ffffff",
   black: "#0a0c11",
   fontFamily:
-    "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif",
-  fontFamilyMonospace: "var(--font-geist-mono), ui-monospace, monospace",
+    "var(--font-sans), -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif",
+  fontFamilyMonospace: "ui-monospace, SFMono-Regular, Menlo, monospace",
   headings: {
     fontFamily:
-      "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif",
+      "var(--font-display), var(--font-sans), -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
     fontWeight: "800",
     sizes: {
       h1: { fontSize: rem(40), lineHeight: "1.1" },
