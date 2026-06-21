@@ -180,20 +180,17 @@ export async function createPlaylist(
   userId: string,
   opts: { name: string; description: string; uris: string[]; isPublic: boolean }
 ): Promise<{ id: string; url: string }> {
-  const spotifyUserId = await getCurrentUserId(userId);
-
-  const createRes = await spotifyFetch(
-    userId,
-    `/users/${spotifyUserId}/playlists`,
-    {
-      method: "POST",
-      body: JSON.stringify({
-        name: opts.name,
-        description: opts.description,
-        public: opts.isPublic,
-      }),
-    }
-  );
+  // Use the `/me/playlists` endpoint. The `/users/{id}/playlists` endpoint can
+  // return 403 for some accounts even with the correct scopes, whereas the
+  // `/me` variant works against the authenticated user reliably.
+  const createRes = await spotifyFetch(userId, `/me/playlists`, {
+    method: "POST",
+    body: JSON.stringify({
+      name: opts.name,
+      description: opts.description,
+      public: opts.isPublic,
+    }),
+  });
   if (!createRes.ok) {
     throw new Error(`Failed to create playlist: ${await createRes.text()}`);
   }
