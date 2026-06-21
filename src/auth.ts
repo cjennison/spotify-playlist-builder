@@ -17,6 +17,7 @@ function getWhitelist(): string[] {
 
 const SPOTIFY_SCOPES = [
   "user-read-email",
+  "user-read-private",
   "playlist-modify-public",
   "playlist-modify-private",
 ].join(" ");
