@@ -68,7 +68,8 @@ Requirements:
 - Use REAL, well-known songs and correct artist names so they can be found on Spotify. No made-up tracks.
 - Avoid duplicate songs and avoid listing the same artist too many times.
 - Set "source" to exactly one of "known", "discovery", or "overlap", and "reason" to a one-sentence musical justification (for overlap, explain why it bridges the tastes).
-- Provide a short catchy playlist "name" and a one-sentence "description" mentioning it blends the identities.
+- NAME: invent a FUN, original playlist "name" that fuses these specific tastes — riff on their genres, eras, moods, or a clever mashup/portmanteau of the artists' or bands' names. YOU choose the tone that best fits the blend: a witty pun, a silly/humorous mashup, a slick serious combo, an inside-joke vibe, or a playful portmanteau. Keep it short (2-5 words), specific, and evocative. Avoid generic names like "Blended Playlist", "Eclectic Mix", "Melodic Fusion", or "Eclectic Echoes".
+- Write a one-sentence "description" that nods to the blended identities and the name's vibe.
 
 Return strictly the JSON object matching the schema.`;
 }
