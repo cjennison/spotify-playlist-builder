@@ -23,6 +23,7 @@ import {
   TagsInput,
   Title,
   Tooltip,
+  UnstyledButton,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import {
@@ -31,7 +32,9 @@ import {
   IconCheck,
   IconExternalLink,
   IconMusic,
-  IconUserPlus,
+  IconPlus,
+  IconSparkles,
+  IconUsersGroup,
   IconX,
 } from "@tabler/icons-react";
 import type { Identity, ResolvedTrack } from "@/types";
@@ -42,8 +45,39 @@ interface GenerateResponse {
   tracks: ResolvedTrack[];
 }
 
-const ACCENTS = ["brand", "blue", "grape", "orange", "pink", "cyan"];
+const ACCENTS = ["teal", "blue", "grape", "orange", "pink", "cyan"];
 const emptyIdentity = (): Identity => ({ name: "", artists: [] });
+
+function StepHeader({
+  step,
+  title,
+  hint,
+  right,
+}: {
+  step: number;
+  title: string;
+  hint?: string;
+  right?: React.ReactNode;
+}) {
+  return (
+    <Group justify="space-between" align="center" wrap="nowrap">
+      <Group gap="sm" align="center" wrap="nowrap">
+        <span className="step-badge">{step}</span>
+        <Box>
+          <Title order={2} style={{ letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+            {title}
+          </Title>
+          {hint && (
+            <Text c="dimmed" fz="sm">
+              {hint}
+            </Text>
+          )}
+        </Box>
+      </Group>
+      {right}
+    </Group>
+  );
+}
 
 export default function Builder({ spotifyLinked }: { spotifyLinked: boolean }) {
   const [identities, setIdentities] = useState<Identity[]>([
@@ -65,11 +99,9 @@ export default function Builder({ spotifyLinked }: { spotifyLinked: boolean }) {
       prev.map((it, i) => (i === idx ? { ...it, ...patch } : it))
     );
   }
-
   function addIdentity() {
     setIdentities((prev) => [...prev, emptyIdentity()]);
   }
-
   function removeIdentity(idx: number) {
     setIdentities((prev) => prev.filter((_, i) => i !== idx));
   }
@@ -87,13 +119,11 @@ export default function Builder({ spotifyLinked }: { spotifyLinked: boolean }) {
     setError(null);
     setResult(null);
     setPlaylistUrl(null);
-
     const cleaned = cleanedIdentities();
     if (cleaned.length < 2) {
       setError("Add at least two people, each with a name and one artist.");
       return;
     }
-
     setLoading(true);
     try {
       const res = await fetch("/api/generate", {
@@ -130,7 +160,7 @@ export default function Builder({ spotifyLinked }: { spotifyLinked: boolean }) {
       if (!res.ok) throw new Error(data.error || "Failed to create playlist.");
       setPlaylistUrl(data.url);
       notifications.show({
-        color: "brand",
+        color: "teal",
         icon: <IconCheck size={16} />,
         title: "Playlist created",
         message: "Your blended playlist is now in Spotify.",
@@ -149,21 +179,28 @@ export default function Builder({ spotifyLinked }: { spotifyLinked: boolean }) {
     (n, i) => n + i.artists.filter(Boolean).length,
     0
   );
+  const ready = cleanedIdentities().length >= 2;
 
   return (
-    <Container size={920} py={48}>
-      <Stack gap={40}>
+    <Container size={860} py={48}>
+      <Stack gap={44}>
         {/* Hero */}
         <Stack gap="xs">
-          <Badge variant="light" color="brand" radius="sm" w="fit-content">
-            New blend
-          </Badge>
+          <Text
+            fz="xs"
+            fw={700}
+            c="dimmed"
+            tt="uppercase"
+            style={{ letterSpacing: "0.18em" }}
+          >
+            AI Playlist Studio
+          </Text>
           <Title order={1} style={{ letterSpacing: "-0.035em" }}>
-            Create a blend
+            Create a <span className="gradient-text">blend</span>
           </Title>
           <Text c="dimmed" fz="lg" maw={560}>
-            Add everyone&apos;s favorite artists, set the vibe, and let the AI
-            weave them into one shared playlist.
+            Add everyone&apos;s favorite artists, dial in the vibe, and let the
+            AI weave them into one shared playlist.
           </Text>
         </Stack>
 
@@ -180,26 +217,24 @@ export default function Builder({ spotifyLinked }: { spotifyLinked: boolean }) {
           </Alert>
         )}
 
-        {/* Identities */}
-        <Stack gap="md">
-          <Group justify="space-between" align="center">
-            <Group gap="xs" align="baseline">
-              <Title order={2} style={{ letterSpacing: "-0.02em" }}>
-                People
-              </Title>
-              <Text c="dimmed" fz="sm">
+        {/* Step 1 — People */}
+        <Stack gap="lg">
+          <StepHeader
+            step={1}
+            title="People"
+            hint="Two or more — add a few artists each."
+            right={
+              <Badge
+                size="lg"
+                radius="sm"
+                variant="light"
+                color="teal"
+                leftSection={<IconUsersGroup size={14} />}
+              >
                 {identities.length} · {totalArtists} artists
-              </Text>
-            </Group>
-            <Button
-              variant="default"
-              radius="xl"
-              leftSection={<IconUserPlus size={16} />}
-              onClick={addIdentity}
-            >
-              Add person
-            </Button>
-          </Group>
+              </Badge>
+            }
+          />
 
           <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
             {identities.map((identity, idIdx) => {
@@ -210,6 +245,7 @@ export default function Builder({ spotifyLinked }: { spotifyLinked: boolean }) {
               return (
                 <Card
                   key={idIdx}
+                  className="person-card"
                   withBorder
                   radius="lg"
                   padding="lg"
@@ -220,7 +256,12 @@ export default function Builder({ spotifyLinked }: { spotifyLinked: boolean }) {
                 >
                   <Stack gap="md">
                     <Group gap="sm" wrap="nowrap">
-                      <Avatar radius="xl" size={42} color={accent} variant="filled">
+                      <Avatar
+                        radius="xl"
+                        size={44}
+                        color={accent}
+                        variant="filled"
+                      >
                         {initial}
                       </Avatar>
                       <TextInput
@@ -234,7 +275,7 @@ export default function Builder({ spotifyLinked }: { spotifyLinked: boolean }) {
                         }
                       />
                       {identities.length > 2 && (
-                        <Tooltip label="Remove person" withArrow>
+                        <Tooltip label="Remove" withArrow>
                           <ActionIcon
                             variant="subtle"
                             color="gray"
@@ -252,10 +293,14 @@ export default function Builder({ spotifyLinked }: { spotifyLinked: boolean }) {
                       variant="filled"
                       label="Liked artists"
                       placeholder={
-                        identity.artists.length ? "Add another…" : "e.g. Cake, Flobots"
+                        identity.artists.length
+                          ? "Add another…"
+                          : "e.g. Cake, Flobots"
                       }
                       value={identity.artists}
-                      onChange={(value) => updateIdentity(idIdx, { artists: value })}
+                      onChange={(value) =>
+                        updateIdentity(idIdx, { artists: value })
+                      }
                       clearable
                       splitChars={[",", "\n"]}
                     />
@@ -263,78 +308,128 @@ export default function Builder({ spotifyLinked }: { spotifyLinked: boolean }) {
                 </Card>
               );
             })}
+
+            <UnstyledButton
+              className="ghost-card"
+              onClick={addIdentity}
+              aria-label="Add person"
+            >
+              <Stack align="center" justify="center" gap={6} h="100%" py="xl">
+                <IconPlus size={22} />
+                <Text fz="sm" fw={600}>
+                  Add person
+                </Text>
+              </Stack>
+            </UnstyledButton>
           </SimpleGrid>
         </Stack>
 
-        {/* Controls */}
-        <Card
-          withBorder
-          radius="lg"
-          padding="xl"
-          style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}
-        >
-          <Stack gap="xl">
-            <Box>
-              <Group justify="space-between" mb="sm">
-                <Text fw={600}>Playlist size</Text>
-                <Badge variant="light" color="gray" radius="sm" size="lg">
-                  {size} tracks
-                </Badge>
-              </Group>
-              <Slider
-                color="brand"
-                size="lg"
-                min={4}
-                max={50}
-                value={size}
-                onChange={setSize}
-                marks={[
-                  { value: 4, label: "4" },
-                  { value: 25, label: "25" },
-                  { value: 50, label: "50" },
-                ]}
-              />
-            </Box>
+        {/* Step 2 — Vibe */}
+        <Stack gap="lg">
+          <StepHeader step={2} title="Vibe" hint="Size and the discovery mix." />
+          <Card
+            withBorder
+            radius="lg"
+            padding="xl"
+            style={{
+              backgroundColor: "var(--surface)",
+              borderColor: "var(--border)",
+            }}
+          >
+            <Stack gap={36}>
+              <Box>
+                <Group justify="space-between" mb="sm">
+                  <Text fw={600}>Playlist size</Text>
+                  <Badge variant="light" color="gray" radius="sm" size="lg">
+                    {size} tracks
+                  </Badge>
+                </Group>
+                <Slider
+                  color="teal"
+                  size="lg"
+                  min={4}
+                  max={50}
+                  value={size}
+                  onChange={setSize}
+                  marks={[
+                    { value: 4, label: "4" },
+                    { value: 25, label: "25" },
+                    { value: 50, label: "50" },
+                  ]}
+                />
+              </Box>
 
-            <Box>
-              <Group justify="space-between" mb="sm">
-                <Text fw={600}>Known vs. discovery</Text>
-                <Badge variant="light" color="brand" radius="sm" size="lg">
-                  {knownPct}% known · {100 - knownPct}% discovery
-                </Badge>
-              </Group>
-              <Slider
-                color="brand"
-                size="lg"
-                min={0}
-                max={100}
-                value={knownPct}
-                onChange={(v) => setKnownRatio(v / 100)}
-                marks={[
-                  { value: 0, label: "Discover" },
-                  { value: 100, label: "Familiar" },
-                ]}
-              />
-              <Text c="dimmed" fz="xs" mt="xl">
-                Higher keeps more songs by artists they already love. Lower leans
-                into music-theory-based discoveries.
-              </Text>
-            </Box>
+              <Box>
+                <Group justify="space-between" mb="sm">
+                  <Text fw={600}>Known vs. discovery</Text>
+                  <Badge variant="light" color="teal" radius="sm" size="lg">
+                    {knownPct}% known · {100 - knownPct}% discovery
+                  </Badge>
+                </Group>
+                <Slider
+                  color="teal"
+                  size="lg"
+                  min={0}
+                  max={100}
+                  value={knownPct}
+                  onChange={(v) => setKnownRatio(v / 100)}
+                  mb="md"
+                  marks={[
+                    { value: 0, label: "Discover" },
+                    { value: 100, label: "Familiar" },
+                  ]}
+                />
+                <div className="ratio-bar" style={{ marginTop: 28 }}>
+                  <div
+                    style={{
+                      width: `${knownPct}%`,
+                      background: "linear-gradient(90deg,#1db954,#4bd680)",
+                    }}
+                  />
+                  <div
+                    style={{
+                      width: `${100 - knownPct}%`,
+                      background:
+                        "linear-gradient(90deg,#7c4dff,#b14bd6)",
+                    }}
+                  />
+                </div>
+                <Group justify="space-between" mt={8}>
+                  <Text fz="xs" c="dimmed">
+                    Known artists
+                  </Text>
+                  <Text fz="xs" c="dimmed">
+                    Discoveries
+                  </Text>
+                </Group>
+              </Box>
+            </Stack>
+          </Card>
+        </Stack>
 
-            <Button
-              size="lg"
-              radius="md"
-              color="brand"
-              fullWidth
-              loading={loading}
-              disabled={!spotifyLinked}
-              leftSection={<IconMusic size={20} />}
-              onClick={generate}
-            >
-              {loading ? "Blending tastes…" : "Generate playlist"}
-            </Button>
-          </Stack>
-        </Card>
+        {/* Step 3 — Blend */}
+        <Stack gap="lg">
+          <StepHeader step={3} title="Blend" hint="Generate and save to Spotify." />
+          <Button
+            size="xl"
+            radius="md"
+            fullWidth
+            variant="gradient"
+            gradient={{ from: "teal", to: "brand.7", deg: 100 }}
+            loading={loading}
+            disabled={!spotifyLinked || !ready}
+            leftSection={<IconSparkles size={20} />}
+            onClick={generate}
+            styles={{ root: { height: 56, fontSize: 16 } }}
+          >
+            {loading ? "Blending tastes…" : "Generate playlist"}
+          </Button>
+          {!ready && spotifyLinked && (
+            <Text c="dimmed" fz="xs" ta="center">
+              Add at least two people with artists to continue.
+            </Text>
+          )}
+        </Stack>
 
         {error && (
           <Alert
@@ -352,41 +447,58 @@ export default function Builder({ spotifyLinked }: { spotifyLinked: boolean }) {
         {/* Results */}
         {result && (
           <Stack gap="md">
-            <Group justify="space-between" align="flex-end" wrap="wrap">
-              <Stack gap={4}>
-                <Title order={2} style={{ letterSpacing: "-0.02em" }}>
-                  {result.name}
-                </Title>
-                <Text c="dimmed" fz="sm">
-                  {result.description}
-                </Text>
-                <Text c="dimmed" fz="xs" mt={2}>
-                  {result.tracks.length} tracks matched on Spotify
-                </Text>
-              </Stack>
-              <Group gap="md">
-                <Switch
-                  checked={isPublic}
-                  onChange={(e) => setIsPublic(e.currentTarget.checked)}
-                  label="Public"
-                  color="brand"
-                />
-                <Button
-                  radius="xl"
-                  color="brand"
-                  loading={creating}
-                  leftSection={<IconBrandSpotify size={18} />}
-                  onClick={createPlaylist}
-                >
-                  Save to Spotify
-                </Button>
+            <Divider
+              label="Your blend"
+              labelPosition="center"
+              color="var(--border)"
+            />
+            <Paper
+              withBorder
+              radius="lg"
+              p="lg"
+              style={{
+                borderColor: "var(--border)",
+                background:
+                  "linear-gradient(135deg, rgba(29,185,84,0.10), rgba(124,77,255,0.06)), var(--surface)",
+              }}
+            >
+              <Group justify="space-between" align="flex-end" wrap="wrap">
+                <Stack gap={4}>
+                  <Title order={2} style={{ letterSpacing: "-0.02em" }}>
+                    {result.name}
+                  </Title>
+                  <Text c="dimmed" fz="sm" maw={460}>
+                    {result.description}
+                  </Text>
+                  <Text c="dimmed" fz="xs" mt={2}>
+                    {result.tracks.length} tracks matched on Spotify
+                  </Text>
+                </Stack>
+                <Group gap="md">
+                  <Switch
+                    checked={isPublic}
+                    onChange={(e) => setIsPublic(e.currentTarget.checked)}
+                    label="Public"
+                    color="teal"
+                  />
+                  <Button
+                    radius="xl"
+                    size="md"
+                    color="teal"
+                    loading={creating}
+                    leftSection={<IconBrandSpotify size={18} />}
+                    onClick={createPlaylist}
+                  >
+                    Save to Spotify
+                  </Button>
+                </Group>
               </Group>
-            </Group>
+            </Paper>
 
             {playlistUrl && (
               <Alert
                 variant="light"
-                color="brand"
+                color="teal"
                 radius="md"
                 icon={<IconCheck size={18} />}
               >
@@ -419,11 +531,16 @@ export default function Builder({ spotifyLinked }: { spotifyLinked: boolean }) {
               {result.tracks.map((t, i) => (
                 <Box key={t.uri + i}>
                   {i > 0 && <Divider color="var(--border)" />}
-                  <Group gap="md" wrap="nowrap" p="sm">
-                    <Text fz="xs" c="dimmed" w={20} ta="right">
+                  <Group
+                    gap="md"
+                    wrap="nowrap"
+                    p="sm"
+                    style={{ transition: "background 120ms ease" }}
+                  >
+                    <Text fz="xs" c="dimmed" w={22} ta="right" ff="monospace">
                       {i + 1}
                     </Text>
-                    <Avatar src={t.albumImage} radius="sm" size={44}>
+                    <Avatar src={t.albumImage} radius="md" size={46}>
                       <IconMusic size={20} />
                     </Avatar>
                     <Box style={{ flex: 1, minWidth: 0 }}>
@@ -434,12 +551,12 @@ export default function Builder({ spotifyLinked }: { spotifyLinked: boolean }) {
                         {t.spotifyArtist}
                       </Text>
                     </Box>
-                    <Stack gap={2} align="flex-end">
+                    <Stack gap={4} align="flex-end">
                       <Badge
                         size="sm"
                         radius="sm"
                         variant="light"
-                        color={t.source === "known" ? "blue" : "grape"}
+                        color={t.source === "known" ? "teal" : "grape"}
                       >
                         {t.source}
                       </Badge>
