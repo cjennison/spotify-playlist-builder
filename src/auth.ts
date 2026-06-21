@@ -22,7 +22,9 @@ const SPOTIFY_SCOPES = [
 ].join(" ");
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: MongoDBAdapter(clientPromise),
+  adapter: MongoDBAdapter(clientPromise, {
+    databaseName: process.env.MONGODB_DB || "spotify_playlist_builder",
+  }),
   session: { strategy: "database" },
   trustHost: true,
   providers: [
