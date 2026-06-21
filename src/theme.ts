@@ -1,46 +1,54 @@
 "use client";
 
-import { createTheme, rem } from "@mantine/core";
+import { createTheme, rem, type MantineColorsTuple } from "@mantine/core";
+
+const brand: MantineColorsTuple = [
+  "#e6fbef",
+  "#d0f5e0",
+  "#a2eac0",
+  "#70df9d",
+  "#4bd680",
+  "#33d06f",
+  "#1db954", // index 6 — iconic Spotify green
+  "#15a448",
+  "#0a8d3b",
+  "#00752d",
+];
+
+// Cool charcoal surfaces for a premium dark UI.
+const dark: MantineColorsTuple = [
+  "#f3f5f7", // 0 text
+  "#cdd2db", // 1
+  "#99a1b0", // 2 dimmed
+  "#6b7280", // 3
+  "#2a2f3a", // 4 borders
+  "#1e222c", // 5 inputs / subtle surface
+  "#161922", // 6 card surface
+  "#0e1117", // 7 body background
+  "#0a0c11", // 8
+  "#05070a", // 9
+];
 
 export const theme = createTheme({
   primaryColor: "brand",
-  primaryShade: { light: 6, dark: 5 },
-  colors: {
-    // Refined Spotify-inspired green scale.
-    brand: [
-      "#e6fbef",
-      "#d0f5e0",
-      "#a2eac0",
-      "#70df9d",
-      "#4bd680",
-      "#33d06f",
-      "#1db954", // index 6 — primary
-      "#15a448",
-      "#0a8d3b",
-      "#00752d",
-    ],
-  },
+  primaryShade: { light: 6, dark: 6 },
+  colors: { brand, dark },
+  white: "#ffffff",
+  black: "#0a0c11",
   fontFamily:
     "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif",
   fontFamilyMonospace: "var(--font-geist-mono), ui-monospace, monospace",
   headings: {
     fontFamily:
       "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif",
-    fontWeight: "700",
+    fontWeight: "800",
     sizes: {
-      h1: { fontSize: rem(34), lineHeight: "1.15" },
-      h2: { fontSize: rem(22), lineHeight: "1.25" },
-      h3: { fontSize: rem(17), lineHeight: "1.3" },
+      h1: { fontSize: rem(40), lineHeight: "1.1" },
+      h2: { fontSize: rem(24), lineHeight: "1.2" },
+      h3: { fontSize: rem(18), lineHeight: "1.3" },
     },
   },
   defaultRadius: "md",
-  radius: {
-    md: rem(12),
-    lg: rem(18),
-  },
-  shadows: {
-    sm: "0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06)",
-    md: "0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.04)",
-  },
+  radius: { md: rem(12), lg: rem(18) },
   cursorType: "pointer",
 });

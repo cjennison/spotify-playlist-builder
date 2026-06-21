@@ -33,10 +33,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <ColorSchemeScript defaultColorScheme="light" />
+        <ColorSchemeScript defaultColorScheme="dark" forceColorScheme="dark" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <MantineProvider theme={theme} defaultColorScheme="light">
+        <div className="app-bg" />
+        <MantineProvider theme={theme} defaultColorScheme="dark" forceColorScheme="dark">
           <Notifications position="top-right" />
           <Providers>{children}</Providers>
         </MantineProvider>

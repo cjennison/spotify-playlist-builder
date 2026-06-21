@@ -1,7 +1,10 @@
 :root {
-  --surface: #ffffff;
-  --page-bg: #f6f7f9;
-  --ink: #0b1220;
+  --page-bg: #0e1117;
+  --surface: #161922;
+  --surface-2: #1e222c;
+  --border: #2a2f3a;
+  --ink: #f3f5f7;
+  --muted: #99a1b0;
 }
 
 * {
@@ -15,8 +18,19 @@ body {
 }
 
 body {
-  background: var(--page-bg);
   color: var(--ink);
+  background-color: var(--page-bg);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* App-wide ambient background glow */
+.app-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(48rem 32rem at 18% -8%, rgba(29, 185, 84, 0.16), transparent 60%),
+    radial-gradient(42rem 30rem at 100% 0%, rgba(29, 185, 84, 0.08), transparent 55%),
+    var(--page-bg);
 }

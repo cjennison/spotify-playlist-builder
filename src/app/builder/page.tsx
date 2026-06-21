@@ -1,12 +1,5 @@
 import { redirect } from "next/navigation";
-import {
-  Badge,
-  Box,
-  Button,
-  Group,
-  Text,
-  ThemeIcon,
-} from "@mantine/core";
+import { Badge, Box, Button, Group, Text, ThemeIcon } from "@mantine/core";
 import {
   IconBrandSpotify,
   IconCircleCheckFilled,
@@ -26,31 +19,31 @@ export default async function BuilderPage() {
   const linked = await isSpotifyLinked(session.user.id);
 
   return (
-    <Box style={{ minHeight: "100dvh", backgroundColor: "var(--page-bg)" }}>
+    <Box style={{ minHeight: "100dvh" }}>
       <Box
         component="header"
         style={{
           position: "sticky",
           top: 0,
           zIndex: 100,
-          backgroundColor: "rgba(255,255,255,0.8)",
-          backdropFilter: "saturate(180%) blur(10px)",
-          borderBottom: "1px solid var(--mantine-color-gray-2)",
+          backgroundColor: "rgba(14, 17, 23, 0.72)",
+          backdropFilter: "saturate(160%) blur(12px)",
+          borderBottom: "1px solid var(--border)",
         }}
       >
         <Group
           justify="space-between"
-          h={60}
-          px="md"
+          h={62}
+          px="lg"
           wrap="nowrap"
-          maw={960}
+          maw={920}
           mx="auto"
         >
-          <Group gap="xs">
-            <ThemeIcon size={30} radius="md" variant="light" color="brand">
+          <Group gap={10}>
+            <ThemeIcon size={32} radius="md" variant="light" color="brand">
               <IconVinyl size={20} />
             </ThemeIcon>
-            <Text fw={700} style={{ letterSpacing: "-0.02em" }}>
+            <Text fw={800} fz="lg" style={{ letterSpacing: "-0.02em" }}>
               Blendlist
             </Text>
           </Group>
@@ -80,7 +73,7 @@ export default async function BuilderPage() {
                 <Button
                   type="submit"
                   size="xs"
-                  radius="md"
+                  radius="xl"
                   color="brand"
                   leftSection={<IconBrandSpotify size={16} />}
                 >
@@ -98,7 +91,7 @@ export default async function BuilderPage() {
               <Button
                 type="submit"
                 size="xs"
-                radius="md"
+                radius="xl"
                 variant="subtle"
                 color="gray"
                 leftSection={<IconLogout size={16} />}

@@ -1,17 +1,21 @@
 import { redirect } from "next/navigation";
 import {
-  Box,
+  Badge,
   Button,
   Center,
-  Divider,
   Group,
-  Paper,
   Stack,
   Text,
   ThemeIcon,
   Title,
 } from "@mantine/core";
-import { IconBrandGoogleFilled, IconVinyl } from "@tabler/icons-react";
+import {
+  IconBrandGoogleFilled,
+  IconSparkles,
+  IconAdjustmentsHorizontal,
+  IconBrandSpotify,
+  IconVinyl,
+} from "@tabler/icons-react";
 import { auth, signIn } from "@/auth";
 
 export default async function Home() {
@@ -21,76 +25,90 @@ export default async function Home() {
   }
 
   return (
-    <Box
-      style={{
-        minHeight: "100dvh",
-        backgroundColor: "var(--page-bg)",
-        backgroundImage:
-          "radial-gradient(60rem 40rem at 50% -10%, rgba(29,185,84,0.16), transparent 60%), radial-gradient(40rem 30rem at 90% 110%, rgba(29,185,84,0.08), transparent 60%)",
-      }}
-    >
-      <Center mih="100dvh" px="md">
-        <Stack align="center" gap="xl" w="100%" maw={440}>
-          <Group gap="xs">
-            <ThemeIcon size={34} radius="md" variant="light" color="brand">
-              <IconVinyl size={22} />
-            </ThemeIcon>
-            <Text fw={700} fz="lg" style={{ letterSpacing: "-0.02em" }}>
-              Blendlist
+    <Center mih="100dvh" px="md" py={48}>
+      <Stack align="center" gap={40} w="100%" maw={560}>
+        <Group gap={10}>
+          <ThemeIcon size={36} radius="md" variant="light" color="brand">
+            <IconVinyl size={24} />
+          </ThemeIcon>
+          <Text fw={800} fz="xl" style={{ letterSpacing: "-0.03em" }}>
+            Blendlist
+          </Text>
+        </Group>
+
+        <Stack align="center" gap="lg">
+          <Title order={1} ta="center" style={{ letterSpacing: "-0.04em" }}>
+            Two libraries.
+            <br />
+            One{" "}
+            <Text
+              span
+              inherit
+              variant="gradient"
+              gradient={{ from: "brand.4", to: "brand.7", deg: 100 }}
+            >
+              perfect playlist.
             </Text>
-          </Group>
+          </Title>
 
-          <Paper
-            withBorder
-            shadow="md"
-            radius="lg"
-            p={36}
-            w="100%"
-            style={{ backgroundColor: "var(--surface)" }}
-          >
-            <Stack gap="lg">
-              <Stack gap={6}>
-                <Title order={1} style={{ letterSpacing: "-0.03em" }}>
-                  Blend your tastes
-                </Title>
-                <Text c="dimmed" fz="sm" lh={1.6}>
-                  Turn two or more people&apos;s favorite artists into one
-                  AI-curated Spotify playlist — balanced between what they love
-                  and what they&apos;ll discover next.
-                </Text>
-              </Stack>
-
-              <form
-                action={async () => {
-                  "use server";
-                  await signIn("google", { redirectTo: "/builder" });
-                }}
-              >
-                <Button
-                  type="submit"
-                  fullWidth
-                  size="md"
-                  radius="md"
-                  variant="default"
-                  leftSection={<IconBrandGoogleFilled size={18} />}
-                >
-                  Continue with Google
-                </Button>
-              </form>
-
-              <Divider label="Private access" labelPosition="center" />
-
-              <Text c="dimmed" fz="xs" ta="center">
-                Sign-in is restricted to approved accounts.
-              </Text>
-            </Stack>
-          </Paper>
-
-          <Text c="dimmed" fz="xs">
-            Made for sharing music, together.
+          <Text c="dimmed" ta="center" fz="lg" lh={1.6} maw={440}>
+            Blendlist mixes the artists two or more people love into one
+            AI-curated Spotify playlist — balanced between the familiar and the
+            discoveries they&apos;ll thank you for.
           </Text>
         </Stack>
-      </Center>
-    </Box>
+
+        <Stack align="center" gap="md" w="100%" maw={320}>
+          <form
+            style={{ width: "100%" }}
+            action={async () => {
+              "use server";
+              await signIn("google", { redirectTo: "/builder" });
+            }}
+          >
+            <Button
+              type="submit"
+              fullWidth
+              size="lg"
+              radius="md"
+              variant="white"
+              leftSection={<IconBrandGoogleFilled size={20} />}
+            >
+              Continue with Google
+            </Button>
+          </form>
+          <Text c="dimmed" fz="xs" ta="center">
+            Private app — access is restricted to approved accounts.
+          </Text>
+        </Stack>
+
+        <Group gap="xs" justify="center">
+          <Badge
+            size="lg"
+            radius="sm"
+            variant="default"
+            leftSection={<IconSparkles size={14} />}
+          >
+            Music-theory blends
+          </Badge>
+          <Badge
+            size="lg"
+            radius="sm"
+            variant="default"
+            leftSection={<IconAdjustmentsHorizontal size={14} />}
+          >
+            Ratio control
+          </Badge>
+          <Badge
+            size="lg"
+            radius="sm"
+            variant="default"
+            leftSection={<IconBrandSpotify size={14} />}
+          >
+            One-click save
+          </Badge>
+        </Group>
+      </Stack>
+    </Center>
   );
 }
