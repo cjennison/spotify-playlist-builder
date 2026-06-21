@@ -119,6 +119,38 @@ interface SpotifyTrackItem {
   album: { images: { url: string }[] };
 }
 
+export interface ArtistSuggestion {
+  name: string;
+  image?: string;
+  followers?: number;
+}
+
+/** Autocomplete artists from Spotify for the identity builder. */
+export async function searchArtists(
+  userId: string,
+  query: string
+): Promise<ArtistSuggestion[]> {
+  const q = query.trim();
+  if (!q) return [];
+  const params = new URLSearchParams({ q, type: "artist", limit: "8" });
+  const res = await spotifyFetch(userId, `/search?${params.toString()}`);
+  if (!res.ok) return [];
+  const data = (await res.json()) as {
+    artists?: {
+      items: {
+        name: string;
+        images?: { url: string }[];
+        followers?: { total: number };
+      }[];
+    };
+  };
+  return (data.artists?.items ?? []).map((a) => ({
+    name: a.name,
+    image: a.images?.[a.images.length - 1]?.url,
+    followers: a.followers?.total,
+  }));
+}
+
 async function searchTrack(
   userId: string,
   artist: string,

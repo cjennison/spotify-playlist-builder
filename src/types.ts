@@ -5,7 +5,7 @@ export interface Identity {
   artists: string[];
 }
 
-export type TrackSource = "known" | "discovery";
+export type TrackSource = "known" | "discovery" | "overlap";
 
 export interface BlendRequest {
   identities: Identity[];

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActionIcon,
   Alert,
@@ -26,6 +26,7 @@ import {
   UnstyledButton,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
+import { useDebouncedValue } from "@mantine/hooks";
 import {
   IconAlertTriangle,
   IconBrandSpotify,
@@ -37,7 +38,7 @@ import {
   IconUsersGroup,
   IconX,
 } from "@tabler/icons-react";
-import type { Identity, ResolvedTrack } from "@/types";
+import type { Identity, ResolvedTrack, TrackSource } from "@/types";
 
 interface GenerateResponse {
   name: string;
@@ -47,6 +48,67 @@ interface GenerateResponse {
 
 const ACCENTS = ["teal", "blue", "grape", "orange", "pink", "cyan"];
 const emptyIdentity = (): Identity => ({ name: "", artists: [] });
+
+const SOURCE_META: Record<
+  TrackSource,
+  { label: string; color: string }
+> = {
+  known: { label: "known", color: "teal" },
+  discovery: { label: "discovery", color: "grape" },
+  overlap: { label: "shared", color: "yellow" },
+};
+
+/** Artist input with live Spotify autocomplete (free text still allowed). */
+function ArtistTagsInput({
+  value,
+  onChange,
+}: {
+  value: string[];
+  onChange: (v: string[]) => void;
+}) {
+  const [search, setSearch] = useState("");
+  const [data, setData] = useState<string[]>([]);
+  const [debounced] = useDebouncedValue(search, 250);
+
+  useEffect(() => {
+    const q = debounced.trim();
+    if (q.length < 2) {
+      setData([]);
+      return;
+    }
+    let active = true;
+    fetch(`/api/spotify/search?q=${encodeURIComponent(q)}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (!active) return;
+        const names: string[] = (d.artists ?? []).map(
+          (a: { name: string }) => a.name
+        );
+        setData(
+          Array.from(new Set(names)).filter((n) => !value.includes(n))
+        );
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [debounced, value]);
+
+  return (
+    <TagsInput
+      variant="filled"
+      label="Liked artists"
+      placeholder={value.length ? "Add another…" : "Search e.g. Cake"}
+      value={value}
+      onChange={onChange}
+      searchValue={search}
+      onSearchChange={setSearch}
+      data={data}
+      clearable
+      splitChars={[",", "\n"]}
+    />
+  );
+}
 
 function StepHeader({
   step,
@@ -289,20 +351,11 @@ export default function Builder({ spotifyLinked }: { spotifyLinked: boolean }) {
                       )}
                     </Group>
 
-                    <TagsInput
-                      variant="filled"
-                      label="Liked artists"
-                      placeholder={
-                        identity.artists.length
-                          ? "Add another…"
-                          : "e.g. Cake, Flobots"
-                      }
+                    <ArtistTagsInput
                       value={identity.artists}
                       onChange={(value) =>
                         updateIdentity(idIdx, { artists: value })
                       }
-                      clearable
-                      splitChars={[",", "\n"]}
                     />
                   </Stack>
                 </Card>
@@ -472,6 +525,12 @@ export default function Builder({ spotifyLinked }: { spotifyLinked: boolean }) {
                   </Text>
                   <Text c="dimmed" fz="xs" mt={2}>
                     {result.tracks.length} tracks matched on Spotify
+                    {(() => {
+                      const shared = result.tracks.filter(
+                        (t) => t.source === "overlap"
+                      ).length;
+                      return shared > 0 ? ` · ${shared} shared` : "";
+                    })()}
                   </Text>
                 </Stack>
                 <Group gap="md">
@@ -528,45 +587,56 @@ export default function Builder({ spotifyLinked }: { spotifyLinked: boolean }) {
                 borderColor: "var(--border)",
               }}
             >
-              {result.tracks.map((t, i) => (
-                <Box key={t.uri + i}>
-                  {i > 0 && <Divider color="var(--border)" />}
-                  <Group
-                    gap="md"
-                    wrap="nowrap"
-                    p="sm"
-                    style={{ transition: "background 120ms ease" }}
-                  >
-                    <Text fz="xs" c="dimmed" w={22} ta="right" ff="monospace">
-                      {i + 1}
-                    </Text>
-                    <Avatar src={t.albumImage} radius="md" size={46}>
-                      <IconMusic size={20} />
-                    </Avatar>
-                    <Box style={{ flex: 1, minWidth: 0 }}>
-                      <Text fz="sm" fw={600} truncate>
-                        {t.spotifyTitle}
+              {result.tracks.map((t, i) => {
+                const meta = SOURCE_META[t.source] ?? SOURCE_META.discovery;
+                const isOverlap = t.source === "overlap";
+                return (
+                  <Box key={t.uri + i}>
+                    {i > 0 && <Divider color="var(--border)" />}
+                    <Group
+                      gap="md"
+                      wrap="nowrap"
+                      p="sm"
+                      style={{
+                        background: isOverlap
+                          ? "linear-gradient(90deg, rgba(250,204,21,0.10), transparent 70%)"
+                          : undefined,
+                      }}
+                    >
+                      <Text fz="xs" c="dimmed" w={22} ta="right" ff="monospace">
+                        {i + 1}
                       </Text>
-                      <Text fz="xs" c="dimmed" truncate>
-                        {t.spotifyArtist}
-                      </Text>
-                    </Box>
-                    <Stack gap={4} align="flex-end">
-                      <Badge
-                        size="sm"
-                        radius="sm"
-                        variant="light"
-                        color={t.source === "known" ? "teal" : "grape"}
-                      >
-                        {t.source}
-                      </Badge>
-                      <Text fz={10} c="dimmed">
-                        {t.identity}
-                      </Text>
-                    </Stack>
-                  </Group>
-                </Box>
-              ))}
+                      <Avatar src={t.albumImage} radius="md" size={46}>
+                        <IconMusic size={20} />
+                      </Avatar>
+                      <Box style={{ flex: 1, minWidth: 0 }}>
+                        <Text fz="sm" fw={600} truncate>
+                          {t.spotifyTitle}
+                        </Text>
+                        <Text fz="xs" c="dimmed" truncate>
+                          {t.spotifyArtist}
+                        </Text>
+                      </Box>
+                      <Stack gap={4} align="flex-end">
+                        <Badge
+                          size="sm"
+                          radius="sm"
+                          variant={isOverlap ? "filled" : "light"}
+                          color={meta.color}
+                          leftSection={
+                            isOverlap ? <IconUsersGroup size={11} /> : undefined
+                          }
+                        >
+                          {meta.label}
+                        </Badge>
+                        <Text fz={10} c="dimmed" ta="right">
+                          {t.identity}
+                        </Text>
+                      </Stack>
+                    </Group>
+                  </Box>
+                );
+              })}
             </Paper>
           </Stack>
         )}

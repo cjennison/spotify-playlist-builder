@@ -49,6 +49,13 @@ export async function POST(req: Request) {
         { status: 502 }
       );
     }
+
+    // Shuffle so the playlist isn't grouped by identity/source — Fisher-Yates.
+    for (let i = tracks.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [tracks[i], tracks[j]] = [tracks[j], tracks[i]];
+    }
+
     return NextResponse.json({
       name: blend.name,
       description: blend.description,

@@ -27,7 +27,7 @@ const responseSchema = {
         additionalProperties: false,
         properties: {
           identity: { type: "string" },
-          source: { type: "string", enum: ["known", "discovery"] },
+          source: { type: "string", enum: ["known", "discovery", "overlap"] },
           artist: { type: "string" },
           title: { type: "string" },
           reason: { type: "string" },
@@ -51,6 +51,8 @@ function buildPrompt(req: BlendRequest): string {
     )
     .join("\n");
 
+  const names = req.identities.map((i) => i.name).join(", ");
+
   return `You are an expert music curator and music theorist building a single shared Spotify playlist that blends the tastes of multiple people ("identities").
 
 Identities and their known liked artists/bands:
@@ -61,10 +63,11 @@ Requirements:
 - Balance the playlist EVENLY across identities (~${perIdentity} tracks each). Every identity must be well represented; do not let one person dominate.
 - ${knownPct}% of tracks should be "known": actual songs by the seed artists each identity already likes.
 - ${discoveryPct}% of tracks should be "discovery": songs by DIFFERENT artists that the identity would likely also enjoy, chosen using real music-theory reasoning (shared key tendencies, tempo, instrumentation, harmonic/rhythmic style, genre lineage, vocal timbre, lyrical themes). Example: a fan of Cake might enjoy Flobots.
-- Discovery picks should also act as a bridge: favor artists that connect the identities' tastes where musically honest.
+- OVERLAP / COMMON GROUND: actively look for the musical common ground between the identities. Where a genuine overlap exists, include some tracks with source "overlap" — songs by an artist (or in a style) that ALL (or multiple) of these people would enjoy together. Aim for roughly 15-30% of the playlist to be overlap WHEN a real common ground exists; if the tastes are too divergent for honest overlap, include few or even none — never force it. For an "overlap" track, set "identity" to the names of the people who share it joined by " + " (e.g. "${names}").
+- For non-overlap tracks, set "identity" to the single identity name it represents.
 - Use REAL, well-known songs and correct artist names so they can be found on Spotify. No made-up tracks.
 - Avoid duplicate songs and avoid listing the same artist too many times.
-- For each track set "source" to "known" or "discovery", "identity" to the identity name it represents, and "reason" to a one-sentence musical justification.
+- Set "source" to exactly one of "known", "discovery", or "overlap", and "reason" to a one-sentence musical justification (for overlap, explain why it bridges the tastes).
 - Provide a short catchy playlist "name" and a one-sentence "description" mentioning it blends the identities.
 
 Return strictly the JSON object matching the schema.`;
