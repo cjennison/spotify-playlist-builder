@@ -1,6 +1,41 @@
 "use client";
 
 import { useState } from "react";
+import {
+  ActionIcon,
+  Alert,
+  Anchor,
+  Avatar,
+  Badge,
+  Box,
+  Button,
+  Card,
+  Container,
+  Divider,
+  Group,
+  Paper,
+  SimpleGrid,
+  Slider,
+  Stack,
+  Switch,
+  Text,
+  TextInput,
+  Title,
+  Tooltip,
+} from "@mantine/core";
+import { notifications } from "@mantine/notifications";
+import {
+  IconAlertTriangle,
+  IconBrandSpotify,
+  IconCheck,
+  IconExternalLink,
+  IconMusic,
+  IconPlus,
+  IconSparkles,
+  IconTrash,
+  IconUserPlus,
+  IconX,
+} from "@tabler/icons-react";
 import type { Identity, ResolvedTrack } from "@/types";
 
 interface GenerateResponse {
@@ -124,8 +159,16 @@ export default function Builder({ spotifyLinked }: { spotifyLinked: boolean }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to create playlist.");
       setPlaylistUrl(data.url);
+      notifications.show({
+        color: "brand",
+        icon: <IconCheck size={16} />,
+        title: "Playlist created",
+        message: "Your blended playlist is now in Spotify.",
+      });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to create playlist.");
+      const msg = e instanceof Error ? e.message : "Failed to create playlist.";
+      setError(msg);
+      notifications.show({ color: "red", title: "Couldn't save", message: msg });
     } finally {
       setCreating(false);
     }
@@ -134,224 +177,311 @@ export default function Builder({ spotifyLinked }: { spotifyLinked: boolean }) {
   const knownPct = Math.round(knownRatio * 100);
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-8 space-y-8">
-      {!spotifyLinked && (
-        <div className="rounded-lg border border-yellow-700/50 bg-yellow-900/20 text-yellow-200 px-4 py-3 text-sm">
-          Connect your Spotify account (top right) to generate and save
-          playlists.
-        </div>
-      )}
-
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Identities</h2>
-          <button
-            onClick={addIdentity}
-            className="text-sm rounded-full border border-neutral-700 px-3 py-1 hover:bg-neutral-800"
+    <Container size={960} py={40}>
+      <Stack gap={36}>
+        {!spotifyLinked && (
+          <Alert
+            variant="light"
+            color="yellow"
+            radius="md"
+            icon={<IconAlertTriangle size={18} />}
+            title="Connect Spotify to continue"
           >
-            + Add identity
-          </button>
-        </div>
+            Link your Spotify account using the button in the top-right to
+            generate and save playlists.
+          </Alert>
+        )}
 
-        <div className="grid gap-4 md:grid-cols-2">
-          {identities.map((identity, idIdx) => (
-            <div
-              key={idIdx}
-              className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4 space-y-3"
+        {/* Identities */}
+        <Stack gap="md">
+          <Group justify="space-between" align="flex-end">
+            <Stack gap={2}>
+              <Title order={2} style={{ letterSpacing: "-0.02em" }}>
+                Identities
+              </Title>
+              <Text c="dimmed" fz="sm">
+                Add each person and a few artists they love.
+              </Text>
+            </Stack>
+            <Button
+              variant="default"
+              radius="md"
+              leftSection={<IconUserPlus size={16} />}
+              onClick={addIdentity}
             >
-              <div className="flex items-center gap-2">
-                <input
-                  value={identity.name}
-                  onChange={(e) =>
-                    updateIdentity(idIdx, { name: e.target.value })
-                  }
-                  placeholder={`Person ${idIdx + 1} name`}
-                  className="flex-1 bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-sm outline-none focus:border-neutral-600"
-                />
-                {identities.length > 2 && (
-                  <button
-                    onClick={() => removeIdentity(idIdx)}
-                    className="text-neutral-500 hover:text-red-400 text-sm px-2"
-                    title="Remove identity"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
+              Add identity
+            </Button>
+          </Group>
 
-              <div className="space-y-2">
-                <label className="text-xs uppercase tracking-wide text-neutral-500">
-                  Liked artists / bands
-                </label>
-                {identity.artists.map((artist, artIdx) => (
-                  <div key={artIdx} className="flex items-center gap-2">
-                    <input
-                      value={artist}
+          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+            {identities.map((identity, idIdx) => (
+              <Card
+                key={idIdx}
+                withBorder
+                radius="md"
+                padding="lg"
+                style={{ backgroundColor: "var(--surface)" }}
+              >
+                <Stack gap="sm">
+                  <Group gap="xs" wrap="nowrap">
+                    <TextInput
+                      flex={1}
+                      size="md"
+                      placeholder={`Person ${idIdx + 1}`}
+                      value={identity.name}
                       onChange={(e) =>
-                        updateArtist(idIdx, artIdx, e.target.value)
+                        updateIdentity(idIdx, { name: e.currentTarget.value })
                       }
-                      placeholder="e.g. Cake"
-                      className="flex-1 bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-sm outline-none focus:border-neutral-600"
                     />
-                    {identity.artists.length > 1 && (
-                      <button
-                        onClick={() => removeArtist(idIdx, artIdx)}
-                        className="text-neutral-500 hover:text-red-400 text-sm px-2"
-                        title="Remove artist"
-                      >
-                        ✕
-                      </button>
+                    {identities.length > 2 && (
+                      <Tooltip label="Remove person" withArrow>
+                        <ActionIcon
+                          variant="subtle"
+                          color="gray"
+                          size="lg"
+                          aria-label="Remove identity"
+                          onClick={() => removeIdentity(idIdx)}
+                        >
+                          <IconX size={18} />
+                        </ActionIcon>
+                      </Tooltip>
                     )}
-                  </div>
-                ))}
-                <button
-                  onClick={() => addArtist(idIdx)}
-                  className="text-xs text-neutral-400 hover:text-neutral-200"
-                >
-                  + Add artist
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+                  </Group>
 
-      <section className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4 space-y-5">
-        <div>
-          <div className="flex items-center justify-between text-sm">
-            <label className="font-medium">Playlist size</label>
-            <span className="text-neutral-400">{size} tracks</span>
-          </div>
-          <input
-            type="range"
-            min={4}
-            max={50}
-            value={size}
-            onChange={(e) => setSize(Number(e.target.value))}
-            className="w-full accent-green-500"
-          />
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between text-sm">
-            <label className="font-medium">Known vs. discovery</label>
-            <span className="text-neutral-400">
-              {knownPct}% known · {100 - knownPct}% discovery
-            </span>
-          </div>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={knownPct}
-            onChange={(e) => setKnownRatio(Number(e.target.value) / 100)}
-            className="w-full accent-green-500"
-          />
-          <p className="text-xs text-neutral-500 mt-1">
-            Higher = more songs by artists they already love. Lower = more
-            music-theory-based discoveries.
-          </p>
-        </div>
-
-        <button
-          onClick={generate}
-          disabled={loading || !spotifyLinked}
-          className="w-full rounded-full bg-green-600 text-white font-semibold py-3 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
-        >
-          {loading ? "Blending tastes…" : "Generate playlist"}
-        </button>
-      </section>
-
-      {error && (
-        <div className="rounded-lg border border-red-700/50 bg-red-900/20 text-red-200 px-4 py-3 text-sm">
-          {error}
-        </div>
-      )}
-
-      {result && (
-        <section className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-semibold">{result.name}</h2>
-              <p className="text-sm text-neutral-400">{result.description}</p>
-              <p className="text-xs text-neutral-600 mt-1">
-                {result.tracks.length} tracks matched on Spotify
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <label className="flex items-center gap-2 text-sm text-neutral-400">
-                <input
-                  type="checkbox"
-                  checked={isPublic}
-                  onChange={(e) => setIsPublic(e.target.checked)}
-                  className="accent-green-500"
-                />
-                Public
-              </label>
-              <button
-                onClick={createPlaylist}
-                disabled={creating}
-                className="rounded-full bg-white text-neutral-900 font-semibold px-5 py-2 hover:bg-neutral-200 disabled:opacity-50 transition"
-              >
-                {creating ? "Saving…" : "Save to Spotify"}
-              </button>
-            </div>
-          </div>
-
-          {playlistUrl && (
-            <a
-              href={playlistUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block rounded-lg border border-green-700/50 bg-green-900/20 text-green-200 px-4 py-3 text-sm hover:bg-green-900/30"
-            >
-              ✓ Playlist created — open it in Spotify ↗
-            </a>
-          )}
-
-          <ul className="divide-y divide-neutral-800 rounded-xl border border-neutral-800 overflow-hidden">
-            {result.tracks.map((t, i) => (
-              <li
-                key={t.uri + i}
-                className="flex items-center gap-3 px-4 py-3 bg-neutral-900/40"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                {t.albumImage ? (
-                  <img
-                    src={t.albumImage}
-                    alt=""
-                    className="w-10 h-10 rounded object-cover"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded bg-neutral-800" />
-                )}
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium truncate">
-                    {t.spotifyTitle}
-                  </div>
-                  <div className="text-xs text-neutral-400 truncate">
-                    {t.spotifyArtist}
-                  </div>
-                </div>
-                <div className="text-right shrink-0">
-                  <span
-                    className={`text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full ${
-                      t.source === "known"
-                        ? "bg-blue-900/40 text-blue-300"
-                        : "bg-purple-900/40 text-purple-300"
-                    }`}
+                  <Text
+                    fz="xs"
+                    fw={600}
+                    c="dimmed"
+                    tt="uppercase"
+                    style={{ letterSpacing: "0.04em" }}
                   >
-                    {t.source}
-                  </span>
-                  <div className="text-[11px] text-neutral-500 mt-0.5">
-                    {t.identity}
-                  </div>
-                </div>
-              </li>
+                    Liked artists
+                  </Text>
+
+                  <Stack gap="xs">
+                    {identity.artists.map((artist, artIdx) => (
+                      <TextInput
+                        key={artIdx}
+                        placeholder="e.g. Cake"
+                        value={artist}
+                        onChange={(e) =>
+                          updateArtist(idIdx, artIdx, e.currentTarget.value)
+                        }
+                        rightSection={
+                          identity.artists.length > 1 ? (
+                            <ActionIcon
+                              variant="subtle"
+                              color="gray"
+                              aria-label="Remove artist"
+                              onClick={() => removeArtist(idIdx, artIdx)}
+                            >
+                              <IconTrash size={15} />
+                            </ActionIcon>
+                          ) : null
+                        }
+                      />
+                    ))}
+                  </Stack>
+
+                  <Button
+                    variant="subtle"
+                    color="brand"
+                    size="xs"
+                    leftSection={<IconPlus size={14} />}
+                    onClick={() => addArtist(idIdx)}
+                    style={{ alignSelf: "flex-start" }}
+                  >
+                    Add artist
+                  </Button>
+                </Stack>
+              </Card>
             ))}
-          </ul>
-        </section>
-      )}
-    </div>
+          </SimpleGrid>
+        </Stack>
+
+        {/* Controls */}
+        <Card
+          withBorder
+          radius="md"
+          padding="xl"
+          style={{ backgroundColor: "var(--surface)" }}
+        >
+          <Stack gap="xl">
+            <Box>
+              <Group justify="space-between" mb="xs">
+                <Text fw={600} fz="sm">
+                  Playlist size
+                </Text>
+                <Badge variant="light" color="gray" radius="sm">
+                  {size} tracks
+                </Badge>
+              </Group>
+              <Slider
+                color="brand"
+                min={4}
+                max={50}
+                value={size}
+                onChange={setSize}
+                marks={[
+                  { value: 4, label: "4" },
+                  { value: 25, label: "25" },
+                  { value: 50, label: "50" },
+                ]}
+              />
+            </Box>
+
+            <Box>
+              <Group justify="space-between" mb="xs">
+                <Text fw={600} fz="sm">
+                  Known vs. discovery
+                </Text>
+                <Badge variant="light" color="brand" radius="sm">
+                  {knownPct}% known · {100 - knownPct}% discovery
+                </Badge>
+              </Group>
+              <Slider
+                color="brand"
+                min={0}
+                max={100}
+                value={knownPct}
+                onChange={(v) => setKnownRatio(v / 100)}
+                marks={[
+                  { value: 0, label: "Discover" },
+                  { value: 100, label: "Familiar" },
+                ]}
+              />
+              <Text c="dimmed" fz="xs" mt="lg">
+                Higher keeps more songs by artists they already love. Lower leans
+                into music-theory-based discoveries.
+              </Text>
+            </Box>
+
+            <Button
+              size="md"
+              radius="md"
+              color="brand"
+              fullWidth
+              loading={loading}
+              disabled={!spotifyLinked}
+              leftSection={<IconSparkles size={18} />}
+              onClick={generate}
+            >
+              {loading ? "Blending tastes…" : "Generate playlist"}
+            </Button>
+          </Stack>
+        </Card>
+
+        {error && (
+          <Alert
+            variant="light"
+            color="red"
+            radius="md"
+            icon={<IconAlertTriangle size={18} />}
+            withCloseButton
+            onClose={() => setError(null)}
+          >
+            {error}
+          </Alert>
+        )}
+
+        {/* Results */}
+        {result && (
+          <Stack gap="md">
+            <Group justify="space-between" align="flex-end" wrap="wrap">
+              <Stack gap={2}>
+                <Title order={2} style={{ letterSpacing: "-0.02em" }}>
+                  {result.name}
+                </Title>
+                <Text c="dimmed" fz="sm">
+                  {result.description}
+                </Text>
+                <Text c="dimmed" fz="xs" mt={2}>
+                  {result.tracks.length} tracks matched on Spotify
+                </Text>
+              </Stack>
+              <Group gap="md">
+                <Switch
+                  checked={isPublic}
+                  onChange={(e) => setIsPublic(e.currentTarget.checked)}
+                  label="Public"
+                  color="brand"
+                />
+                <Button
+                  radius="md"
+                  color="brand"
+                  loading={creating}
+                  leftSection={<IconBrandSpotify size={18} />}
+                  onClick={createPlaylist}
+                >
+                  Save to Spotify
+                </Button>
+              </Group>
+            </Group>
+
+            {playlistUrl && (
+              <Alert
+                variant="light"
+                color="brand"
+                radius="md"
+                icon={<IconCheck size={18} />}
+              >
+                <Group justify="space-between" wrap="nowrap">
+                  <Text fz="sm">Playlist created in your Spotify library.</Text>
+                  <Anchor
+                    href={playlistUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    fz="sm"
+                    fw={600}
+                  >
+                    <Group gap={4} wrap="nowrap">
+                      Open <IconExternalLink size={14} />
+                    </Group>
+                  </Anchor>
+                </Group>
+              </Alert>
+            )}
+
+            <Paper
+              withBorder
+              radius="md"
+              style={{ overflow: "hidden", backgroundColor: "var(--surface)" }}
+            >
+              {result.tracks.map((t, i) => (
+                <Box key={t.uri + i}>
+                  {i > 0 && <Divider />}
+                  <Group gap="md" wrap="nowrap" p="sm">
+                    <Avatar src={t.albumImage} radius="sm" size={44}>
+                      <IconMusic size={20} />
+                    </Avatar>
+                    <Box style={{ flex: 1, minWidth: 0 }}>
+                      <Text fz="sm" fw={500} truncate>
+                        {t.spotifyTitle}
+                      </Text>
+                      <Text fz="xs" c="dimmed" truncate>
+                        {t.spotifyArtist}
+                      </Text>
+                    </Box>
+                    <Stack gap={2} align="flex-end">
+                      <Badge
+                        size="sm"
+                        radius="sm"
+                        variant="light"
+                        color={t.source === "known" ? "blue" : "grape"}
+                      >
+                        {t.source}
+                      </Badge>
+                      <Text fz={10} c="dimmed">
+                        {t.identity}
+                      </Text>
+                    </Stack>
+                  </Group>
+                </Box>
+              ))}
+            </Paper>
+          </Stack>
+        )}
+      </Stack>
+    </Container>
   );
 }

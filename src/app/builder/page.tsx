@@ -1,4 +1,18 @@
 import { redirect } from "next/navigation";
+import {
+  Badge,
+  Box,
+  Button,
+  Group,
+  Text,
+  ThemeIcon,
+} from "@mantine/core";
+import {
+  IconBrandSpotify,
+  IconCircleCheckFilled,
+  IconLogout,
+  IconVinyl,
+} from "@tabler/icons-react";
 import { auth, signIn, signOut } from "@/auth";
 import { isSpotifyLinked } from "@/lib/spotify";
 import Builder from "@/components/Builder";
@@ -12,18 +26,50 @@ export default async function BuilderPage() {
   const linked = await isSpotifyLinked(session.user.id);
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-neutral-100">
-      <header className="border-b border-neutral-800 sticky top-0 bg-neutral-950/90 backdrop-blur z-10">
-        <div className="max-w-4xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
-          <span className="font-semibold">Spotify Playlist Builder</span>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-neutral-400 hidden sm:inline">
+    <Box style={{ minHeight: "100dvh", backgroundColor: "var(--page-bg)" }}>
+      <Box
+        component="header"
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
+          backgroundColor: "rgba(255,255,255,0.8)",
+          backdropFilter: "saturate(180%) blur(10px)",
+          borderBottom: "1px solid var(--mantine-color-gray-2)",
+        }}
+      >
+        <Group
+          justify="space-between"
+          h={60}
+          px="md"
+          wrap="nowrap"
+          maw={960}
+          mx="auto"
+        >
+          <Group gap="xs">
+            <ThemeIcon size={30} radius="md" variant="light" color="brand">
+              <IconVinyl size={20} />
+            </ThemeIcon>
+            <Text fw={700} style={{ letterSpacing: "-0.02em" }}>
+              Blendlist
+            </Text>
+          </Group>
+
+          <Group gap="sm" wrap="nowrap">
+            <Text c="dimmed" fz="sm" visibleFrom="sm">
               {session.user.email}
-            </span>
+            </Text>
+
             {linked ? (
-              <span className="text-xs rounded-full bg-green-900/50 text-green-300 px-3 py-1">
+              <Badge
+                size="lg"
+                radius="sm"
+                variant="light"
+                color="brand"
+                leftSection={<IconCircleCheckFilled size={14} />}
+              >
                 Spotify connected
-              </span>
+              </Badge>
             ) : (
               <form
                 action={async () => {
@@ -31,32 +77,40 @@ export default async function BuilderPage() {
                   await signIn("spotify", { redirectTo: "/builder" });
                 }}
               >
-                <button
+                <Button
                   type="submit"
-                  className="text-xs rounded-full bg-green-600 text-white px-3 py-1 hover:bg-green-500"
+                  size="xs"
+                  radius="md"
+                  color="brand"
+                  leftSection={<IconBrandSpotify size={16} />}
                 >
                   Connect Spotify
-                </button>
+                </Button>
               </form>
             )}
+
             <form
               action={async () => {
                 "use server";
                 await signOut({ redirectTo: "/" });
               }}
             >
-              <button
+              <Button
                 type="submit"
-                className="text-xs rounded-full border border-neutral-700 px-3 py-1 hover:bg-neutral-800"
+                size="xs"
+                radius="md"
+                variant="subtle"
+                color="gray"
+                leftSection={<IconLogout size={16} />}
               >
                 Sign out
-              </button>
+              </Button>
             </form>
-          </div>
-        </div>
-      </header>
+          </Group>
+        </Group>
+      </Box>
 
       <Builder spotifyLinked={linked} />
-    </main>
+    </Box>
   );
 }
